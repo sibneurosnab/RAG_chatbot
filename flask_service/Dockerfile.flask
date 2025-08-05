@@ -1,0 +1,24 @@
+FROM python:3.8-slim
+
+# Устанавливаем Tesseract и языковые пакеты для OCR
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        tesseract-ocr \
+        tesseract-ocr-eng \
+        tesseract-ocr-rus \
+    --fix-missing && \
+    rm -rf /var/lib/apt/lists/*
+
+# Устанавливаем зависимости для Python
+RUN pip install --no-cache-dir Flask pytesseract PyMuPDF pillow
+
+# Копируем скрипты и основной файл Flask
+COPY ./scripts /home/node/scripts
+COPY ./flask/flask-app.py /home/node/scripts/
+
+# Устанавливаем рабочую директорию и порты
+WORKDIR /home/node/scripts
+EXPOSE 5000
+
+# Запуск Flask приложения
+CMD ["python", "flask-app.py"]

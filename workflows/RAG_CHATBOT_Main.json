@@ -1,0 +1,2838 @@
+{
+  "name": "RAG CHATBOT Main",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "video",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ee97bdcd-85e9-4a53-9e77-74ff9d8811cd"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "57cddf6d-0a6a-43d2-b8a8-d79ee18948cc",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "web",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "72df165a-aac1-4b28-a212-d4f0b4e287d6",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "file",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        1780,
+        -140
+      ],
+      "id": "b9750e31-4775-498c-865a-2e21f5049980",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "66c450c0-67d3-43b5-af09-58d197191a99",
+              "leftValue": "={{ $('Telegram Trigger').item.json.message.document.file_name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        -80
+      ],
+      "id": "932dca78-1f92-41c0-9bf3-b13bcec39696",
+      "name": "file?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dba766ff-d7e2-4b0c-bcb5-5433a1cb9042",
+              "leftValue": "={{ $('Telegram Trigger').item.json.message.document.mime_type }}",
+              "rightValue": "^(text/plain|application/pdf|application/vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document)$",
+              "operator": {
+                "type": "string",
+                "operation": "notRegex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1100,
+        -280
+      ],
+      "id": "c5d1005d-e68e-4182-ba67-862807f32265",
+      "name": "Format ok?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "Пришлите файлы в форматах txt, docx, pdf.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        -280
+      ],
+      "id": "619c90b1-af63-4418-89c3-1d03810b4417",
+      "name": "Format Error",
+      "webhookId": "4641e068-4c5b-429d-86a9-5b37a422c1b1",
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.file_id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2280,
+        480
+      ],
+      "id": "79f69f51-9384-43fc-825e-a9490674ee79",
+      "name": "File",
+      "webhookId": "1596acd2-524b-4fab-a880-d3f077ea7dd6",
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -580,
+        520
+      ],
+      "id": "9232fbfd-e214-407e-9b17-9be50cf2b179",
+      "name": "Telegram Trigger",
+      "webhookId": "4f9df9db-1fae-40fa-94ad-ee94c2da45a5",
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        2300,
+        -1080
+      ],
+      "id": "ce999632-a114-4397-8334-9a151bdf252b",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "XrHdbIP1gHlyDxXW",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use MCP client for video transcription",
+        "operation": "executeTool",
+        "toolName": "={{ $fromAI(\"tool\", \"the tool selected\") }}",
+        "toolParameters": "={\n          \"videoUrl\": \"{{ $fromAI('url', 'URL of the page to transcribe') }}\"\n        }"
+      },
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        2600,
+        -1080
+      ],
+      "id": "ad11b3a5-d7a8-44d6-94b0-bccd9227538f",
+      "name": "Transcribe",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "7Tt4H3YWRkTi8Ff8",
+          "name": "Dumpling ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are an AI agent integrated into n8n for YouTube video transcription.\n\n**Task:**\n1.  **Process Links:**\n    * When you receive one or more YouTube video links, process them **sequentially**, one after the other.\n    * For each link, use the `executetool` tool.\n    * When calling `executetool`, you **must** use the following JSON structure to specify the tool and its parameters, substituting the actual link into the `videoUrl` field:\n      ```json\n      {\n        \"tool\": \"get-youtube-transcript\",\n        \"Tool_Parameters\": {\n          \"videoUrl\": \"INSERT_VIDEO_LINK_HERE\"\n        }\n      }\n      ```\n2.  **Format Response:**\n    * Collect the result from the `executetool` execution (i.e., the output of the `get-youtube-transcript` tool) for each processed link.\n    * In the final response, for each link, include the **standard success message and result** (including the transcription text) that is typically generated after using the `get-youtube-transcript` tool.\n    * Present these standard outputs for each link sequentially within one message, ensuring they are clearly separated (e.g., by a blank line).\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2360,
+        -1220
+      ],
+      "id": "5215625f-44a5-45f9-860b-2821f3b560f4",
+      "name": "Paid transcription"
+    },
+    {
+      "parameters": {
+        "content": "## VIDEO TRANSCRIPT (PAID, API DUMPLINGAI)\n",
+        "height": 360,
+        "width": 520,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        -1300
+      ],
+      "id": "33598b24-6a86-46b3-a2fc-5e8826d5b46f",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=yt-dlp --cookies \"/home/node/cookies.txt\" -x --audio-format mp3 -o \"{{$json.dynamicAudioPath}}\" '{{ $json.url }}'\n\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2440,
+        -600
+      ],
+      "id": "237012f8-3399-45fa-b74c-c40380f879dc",
+      "name": "Audio extract",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $('Set Names').item.json.dynamicAudioPath }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2660,
+        -600
+      ],
+      "id": "81b0060b-2880-4290-b369-284f2b043f81",
+      "name": "Upload binary",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "9a5bb0d7-223c-48a4-b12e-8fd86657a43d",
+              "name": "video_id",
+              "value": "={{$json.idx_in_batch}}",
+              "type": "string"
+            },
+            {
+              "id": "0b22482a-49f1-46e3-833b-d3230ceeebc7",
+              "name": "dynamicAudioPath",
+              "value": "={{`/home/node/temp_audio/${$execution.id}_${$itemIndex}.mp3`}}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2220,
+        -600
+      ],
+      "id": "39f663d0-c735-48bd-a1b0-056321a4c130",
+      "name": "Set Names"
+    },
+    {
+      "parameters": {
+        "content": "## VIDEO TRANSCRIPT (FREE, LOCAL)\n",
+        "height": 380,
+        "width": 1440,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        -820
+      ],
+      "id": "a42a0764-b3c5-4f99-ad01-1aea5fad07f9",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://whisper-asr:9000/asr?output=srt",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "audio_file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2860,
+        -600
+      ],
+      "id": "6f8e7897-ca10-4b9d-9de0-30aaba143232",
+      "name": "Whisper Transcribe",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-chat-v3-0324",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2240,
+        20
+      ],
+      "id": "ba1ef08d-e8fb-49ce-8ac2-ca74dd6230ff",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vR07vGCQuJSKdDpJ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeTool",
+        "toolName": "firecrawl_scrape",
+        "toolParameters": "={\n  \"url\": \"{{ $fromAI('url', 'URL of the page to scrape') }}\",\n  \"formats\": [\n    \"markdown\"\n  ],\n  \"onlyMainContent\": true,\n  \"waitFor\": 1000,\n  \"timeout\": 30000,\n  \"mobile\": false,\n  \"includeTags\": [\n    \"article\",\n    \"main\",\n    \".DocSearch-content\"\n  ],\n  \"excludeTags\": [\n    \"nav\",\n    \"footer\",\n    \"header\",\n    \"script\",\n    \"style\"\n  ],\n  \"skipTlsVerification\": false\n}"
+      },
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        2740,
+        0
+      ],
+      "id": "e78cbe22-111b-4d6b-b9a5-efbd3cecfb16",
+      "name": "Firecrawl scrape",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "2jyqY5ReGORJ4J14",
+          "name": "firecrawl"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// 1. убрать ```json … ```\nlet raw = $json.output ?? '';\nraw = raw.replace(/^```json\\s*/i,'').replace(/```$/i,'').trim();\n\n// 2. parse\nlet obj;\ntry { obj = JSON.parse(raw); } catch { obj = {}; }\n\n// 3. meta из Merge\nconst {\n  batch_id,\n  idx_in_batch,\n  type = 'web',\n  url,\n  expected_map          // ← счётчики от Split & Tag\n} = $json;\n\n// 4. результат\nreturn {\n  json: {\n    batch_id,\n    idx_in_batch,\n    type,\n    url: obj.url ?? url,\n    language: obj.language ?? null,\n    title:    obj.title    ?? null,\n    text:     obj.text     ?? '',\n    expected_map,          // ← прокидываем без изменений\n    retrieved_at: new Date().toISOString(),\n    error: (obj.text ?? '').startsWith('ERROR')\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2820,
+        -160
+      ],
+      "id": "a4c2fb78-2322-4e6f-95ae-1347ef63917a",
+      "name": "Scrape Parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "641b9fae-4349-4893-a217-3688c2133df8",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3000,
+        -160
+      ],
+      "id": "f93be6a9-9997-46fc-a469-d14b135ed1a2",
+      "name": "Error check"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "Scrape error",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3200,
+        -340
+      ],
+      "id": "127e87cb-6ae6-4d59-8be5-ebef772cdb8e",
+      "name": "Telegram",
+      "webhookId": "8b6f3269-4882-4336-a9f3-bb1ceb0a3d0a",
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## SCRAPING (PAID, API FIRECRAWL.DEV)\n",
+        "height": 520,
+        "width": 1440,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        -360
+      ],
+      "id": "40aa9240-4446-4525-ac72-b72eb4ed833c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.url }}\nor\n{{ $json.chatInput }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You will receive URL/URL's in the user prompt.\nProcess it with scrape tool once for each url and return a single JSON object—no arrays, no extra text. ONLY ON\nUSE EXACTLY ONE SCRAPETOOL CALL PER URL — NO MORE, NO LESS.  \nTHE NUMBER OF SCRAPE CALLS MUST MATCH THE NUMBER OF URLS.  \nDO NOT POST-PROCESS SCRAPE RESULTS WITH THE LANGUAGE MODEL — JUST COLLECT AND RETURN THEM AS RAW JSON.\nIF YOU RECEIVE TEXT FROM URL - DID NOT SEND IT URL AGAIN TO SCRAPE!!!!!\nSteps\n1. Run `scrapetool` with:\n   {\n     \"url\": <URL>,\n     \"format\": \"markdown\",\n     \"cleaned\": true,\n     \"renderJs\": true\n   }\n\n2. If scraping fails → return:\n   {\n     \"url\": <URL>,\n     \"language\": null,\n     \"title\": null,\n     \"text\": \"ERROR: Failed to scrape URL\"\n   }\n\n3. If scraping succeeds →\n   • Extract the best possible page title (prefer `result.metadata.title`, otherwise use the first <title>) → `title`.\n   • Take the Markdown body, remove all boilerplate and irrelevant content:\n     - navigation menus, cookie banners, polls, “Edit this page” links, “Was this page helpful?”, mailto: links, user feedback forms, share buttons, site footers, and similar UI elements.\n   • Do NOT translate the title or the text—return them in the original language.\n   • Detect the language of the cleaned `text` (ISO 639-1, e.g., \"en\", \"ru\") and return as `language`.\n   • If the cleaned body is empty → return:\n       \"text\": \"INFO: No relevant content found\"\n   • Normalize the output text: remove meaningless characters like repeated dashes or empty lines, use standard `\\n`, `\\n\\n` for paragraph formatting.\n\nDo not delete url in text if it part of a text (and it is important for the meaning)\n\nReturn exactly that JSON object and nothing else.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        2280,
+        -140
+      ],
+      "id": "fb039661-5af7-4b14-aa00-d242c165ae6d",
+      "name": "Ai Scraping",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "content": "##                                 LOCAL EXTRACTOR TXT/PDF/PDF+IMG",
+        "height": 420,
+        "width": 1440,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        240
+      ],
+      "id": "7f6a0213-f157-4e6b-a887-47fcee0d7309",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "# МОДУЛЬ ИЗВЛЕЧЕНИЯ КОНТЕНТА\n",
+        "height": 1600,
+        "width": 1620,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1940,
+        -900
+      ],
+      "id": "7266d7a1-524a-40ca-b5a7-0e7d111a3452",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 0. собираем вход\nconst rows = [];\nfor (const el of $input.all()) {\n  const j = el.json;\n  if (Array.isArray(j.items)) rows.push(...j.items);\n  else                        rows.push(j);\n}\nif (!rows.length) return [];   // нечего обрабатывать\n\n// 1. считаем, сколько объектов каждого типа встретилось\nconst expectedMap = {};\nrows.forEach(r => expectedMap[r.type] = (expectedMap[r.type] || 0) + 1);\n\nconst batchId = $execution.id;\nconst fallback = (id, i) => `file_${id || i}.bin`;\n\n// 2. формируем выходные элементы\nreturn rows.map((r, i) => {\n  const item = { ...r };\n\n  if (item.type === 'file') {\n    item.file_name = item.file_name || fallback(item.file_id, i);\n  }\n\n  return {\n    json: {\n      batch_id:      batchId,\n      idx_in_batch:  i,\n      expected_map:  expectedMap,        // ← { web:3, video:2, file:1 }\n      ...item                            // type, url / file_id / file_name …\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1560,
+        -60
+      ],
+      "id": "ee6c898d-8509-4c1c-abac-2d7f6085a4fc",
+      "name": "Split & Tag"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "items",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3960,
+        -140
+      ],
+      "id": "bc85b801-7a3f-421b-87d1-d85ef6d4ba3a",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $json.items || [];\nif (!items.length) return [];\n\n// сколько должно быть (берём из первого элемента партии)\nconst need = items[0].expected_map || {};\n\n// сколько фактически пришло\nconst got = {};\nitems.forEach(it => got[it.type] = (got[it.type] || 0) + 1);\n\n// готовы ли все типы в нужном количестве?\nconst ready = Object.keys(need)\n  .every(t => (got[t] || 0) >= need[t]);\n\nif (ready) {\n  // выпускаем всю партию по одному item\n  return items.map(it => ({ json: it }));\n}\n\n// ещё ждём — ничего не отдаём\nreturn [];\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4120,
+        -140
+      ],
+      "id": "45e13cdc-7398-4c57-999d-4532afd9c4a0",
+      "name": "Gatekeeper"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2380,
+        -300
+      ],
+      "id": "ebb7ccf0-2178-422f-8d36-a355ba81a838",
+      "name": "Keep meta scraping"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2480,
+        320
+      ],
+      "id": "4ba43fb1-b51e-455d-8284-361abfeb4155",
+      "name": "Keep meta file"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        2640,
+        -160
+      ],
+      "id": "be91d867-c5a7-456c-a4f3-44bcc3845b89",
+      "name": "Merge scraping"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        2960,
+        340
+      ],
+      "id": "48fa5fe4-fc76-4317-8d68-3a043d8a918f",
+      "name": "Merge file"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ---------- 0) Универсальная распаковка входа ----------\nfunction unwrapText(input) {\n  let cur = input;\n  for (let i = 0; i < 3; i++) {                 // снимаем вложенные JSON-обёртки\n    if (typeof cur === 'string') {\n      try { cur = JSON.parse(cur); continue; } catch { break; }\n    }\n    break;\n  }\n  if (Array.isArray(cur)) {\n    if (cur[0] && typeof cur[0].text === 'string') return cur[0].text;\n    if (typeof cur[0] === 'string') return cur[0];\n  }\n  if (cur && typeof cur === 'object' && typeof cur.text === 'string') return cur.text;\n  return String(cur ?? '');\n}\n\n// ---------- 1) Берём сырой текст ----------\nconst rawInner = unwrapText($json.text).replace(/\\r/g, '');\n\n// ---------- 2) Режем по маркерам и собираем содержимое между ними ----------\nconst re = /--- (?:Page \\d+|OCR Text from Image on Page \\d+) ---\\n?([\\s\\S]*?)(?=--- (?:Page \\d+|OCR Text from Image on Page \\d+) ---|$)/g;\nlet m, chunks = [];\nwhile ((m = re.exec(rawInner)) !== null) {\n  const t = m[1].trim();\n  if (t) chunks.push(t);\n}\n\n// ---------- 3) Нормализуем до абзацев ----------\nlet text = chunks.join('\\n')\n  .replace(/[ \\t]+$/gm, '')   // хвостовые пробелы\n  .replace(/\\n{3,}/g, '\\n\\n'); // максимум двойной пустой\n\nconst paras = text\n  .split(/\\n{2,}/)\n  .map(p => p\n    .replace(/-\\n(?=\\p{L})/gu, '') // снять переносы слов\n    .replace(/\\n+/g, ' ')          // одиночные переводы -> пробел\n    .replace(/[ \\t]+/g, ' ')\n    .trim()\n  )\n  .filter(Boolean);\n\n// ---------- 4) Возврат в формате n8n ----------\nreturn [{ json: { text: paras.join('\\n\\n') } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2660,
+        480
+      ],
+      "id": "dcc5d292-e428-4ed2-af1b-836a9793af15",
+      "name": "Text Structured"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        3160,
+        -740
+      ],
+      "id": "b6f0875e-31c4-4551-a038-e1eb17dd594f",
+      "name": "Merge transcribe"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2220,
+        -760
+      ],
+      "id": "de142345-5ce8-4f89-bb58-6936de721ac0",
+      "name": "Keep meta transcript"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nreturn items.map(({ json }) => {\n  const {\n    batch_id,\n    idx_in_batch,\n    type = 'video',\n    expected_map,\n    url,\n    data = ''\n  } = json;\n\n  // 1. Разбор SRT — убираем номер строки и таймкоды\n  const lines = data\n    .split(/\\n{2,}/)\n    .map(block => block.split('\\n').slice(2)) // убираем номер и таймкод\n    .flat()\n    .filter(Boolean);\n\n  const cleanText = lines.join('\\n').trim();\n\n  // 2. Язык\n  const lang = /[а-яё]/i.test(cleanText) ? 'ru' : 'en';\n\n  // 3. Возврат\n  return {\n    json: {\n      batch_id,\n      idx_in_batch,\n      type,\n      url,\n      language: lang,\n      text: cleanText,\n      expected_map,\n      retrieved_at: new Date().toISOString(),\n      error: !cleanText\n    }\n  };\n});\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3340,
+        -740
+      ],
+      "id": "646b141c-86a6-4e88-b3de-f0c2f3fda31a",
+      "name": "Video parser"
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=rm \"{{ $('Set Names').item.json.dynamicAudioPath }}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        3160,
+        -600
+      ],
+      "id": "f1ec86ea-e0ec-49a2-a60e-55894c16e176",
+      "name": "Temp delete"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://flask-app:5000/process_pdf",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "pdf",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2480,
+        480
+      ],
+      "id": "f6b6d595-30bf-4527-9311-35f3748c5865",
+      "name": "Extractor"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// базовые поля из Merge-узла\nconst {\n  batch_id,\n  idx_in_batch,\n  type   = 'file',\n  expected_map,          // ← счётчики пришли из Split & Tag\n  file_id,\n  file_name,\n  text\n} = $json;\n\n/* очень грубое определение языка */\nconst lang = /[а-яё]/i.test(text) ? 'ru' : 'en';\n\nreturn {\n  json: {\n    batch_id,\n    idx_in_batch,\n    type,                 // \"file\"\n    file_name,            // сохраняем\n    language: lang,\n    text,\n    expected_map,         // ← прокидываем как есть\n    retrieved_at: new Date().toISOString(),\n    error: !text || text.startsWith('ERROR')\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3200,
+        340
+      ],
+      "id": "87d67225-5fb1-4c33-bc6e-74ada56bbc89",
+      "name": "File Parser"
+    },
+    {
+      "parameters": {
+        "content": "## МОДУЛЬ ПОДГОТОВКИ ИНФОРМАЦИИ И ЭМБЕДДИНГА",
+        "height": 480,
+        "width": 1180,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4300,
+        -320
+      ],
+      "id": "05f6f8d8-512c-4328-b0e9-467d84301c4e",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        3780,
+        -140
+      ],
+      "id": "7ec25deb-9d0a-4cb7-8e86-aab542cfb919",
+      "name": "Merge all"
+    },
+    {
+      "parameters": {
+        "jsCode": "// --- НАЧАЛО КОДА ДЛЯ УЗЛА n8n Clean & Format ---\n\n// Сюда добавляйте ваши регулярные выражения для удаления \"мусора\".\n// Они должны быть достаточно общими, чтобы работать для разных документов.\n// Пример из вашего документа, но лучше обобщать или иметь список таких паттернов.\nconst BOILERPLATE_PATTERNS = [\n  /^back to top$/i,\n  /^was this page helpful\\?$/i,\n  /^thanks? for your feedback$/i,\n  // Добавьте сюда другие паттерны, например:\n  // /^Скачано с сайта - SuperSliv\\.biz - Присоединяйся!$/gim,\n  // /^SuperSliv\\.biz - Твой лучший ВЫБОР!$/gim,\n  // /\\^ УБОЙНЫЕ Oe/g, // Если это постоянный артефакт\n];\n\nfunction cleanInline(str) {\n  // Ваша существующая функция для очистки inline-разметки\n  return str\n    .replace(/\\[([^\\\\]]+?)\\]\\((https?:\\/\\/[^\\\\)]+?)\\)/gi, '$1 ($2)')\n    .replace(/\\[([^\\\\]]+?)\\]/g, '$1')\n    .replace(/(\\*\\*|__)(.*?)\\1/g, '$2')\n    .replace(/(\\*|_)(.*?)\\1/g,  '$2')\n    .replace(/`([^`]+?)`/g,     '$1');\n}\n\nfunction needsParagraphBreak(prevLineTrimmed, currentLineTrimmed) {\n  // Ваша существующая функция для определения необходимости разрыва абзаца\n  if (!prevLineTrimmed) return false;\n  const lastCharPrev = prevLineTrimmed.slice(-1);\n  const firstCharCurr = currentLineTrimmed.charAt(0);\n  // Проверяем, заканчивается ли предыдущая строка на пунктуацию конца предложения\n  // и начинается ли текущая с заглавной буквы (простой эвристический подход)\n  return '.!?:：'.includes(lastCharPrev) && firstCharCurr === firstCharCurr.toUpperCase() && /[A-ZА-ЯЁ]/.test(firstCharCurr);\n}\n\nfunction cleanText(raw = '') {\n  raw = raw.replace(/\\r\\n?/g, '\\n'); // Унификация концов строк\n  const lines = raw.split('\\n');\n\n  const paras = []; // Массив для хранения готовых абзацев\n  let buf = '';     // Буфер для накопления текущего абзаца\n\n  const flush = () => {\n    const trimmedBuf = buf.trim();\n    if (trimmedBuf) { // Добавляем в paras, только если буфер не пустой после trim\n      paras.push(trimmedBuf);\n    }\n    buf = ''; // Очищаем буфер\n  };\n\n  let previousLineTrimmed = ''; // Храним предыдущую обработанную строку для needsParagraphBreak\n\n  for (let i = 0; i < lines.length; i++) {\n    let currentLineRawTrimmed = lines[i].trim(); // Текущая строка, очищенная от пробелов по краям\n\n    // 1. Пропуск пустых строк и сброс буфера (начало нового абзаца)\n    if (!currentLineRawTrimmed) {\n      flush();\n      previousLineTrimmed = ''; // Сбрасываем предыдущую строку, так как был разрыв\n      continue;\n    }\n\n    // 2. Пропуск \"мусорных\" строк\n    if (BOILERPLATE_PATTERNS.some(rx => rx.test(currentLineRawTrimmed)) || currentLineRawTrimmed.startsWith('![')) {\n      flush(); // Сбрасываем буфер перед пропуском мусорной строки\n      previousLineTrimmed = ''; // Сбрасываем предыдущую строку\n      continue;\n    }\n\n    const markerRx = /^\\s*(#{1,6}|[-*•]|\\d+\\.)\\s+/; // Маркеры заголовков и списков\n    const isMarkerLine = markerRx.test(currentLineRawTrimmed);\n    let textToProcess = currentLineRawTrimmed;\n\n    if (isMarkerLine) {\n      // Если текущая строка - это новый маркер (заголовок/элемент списка),\n      // и в буфере уже что-то есть (предыдущий абзац или элемент списка), сбрасываем буфер.\n      flush();\n      textToProcess = currentLineRawTrimmed.replace(markerRx, '').trim(); // Удаляем маркер\n    }\n\n    textToProcess = cleanInline(textToProcess); // Применяем inline очистку\n\n    // 3. Логика формирования абзацев\n    if (!buf) { // Если буфер пуст (начало нового абзаца)\n      buf = textToProcess;\n    } else {\n      // Буфер не пуст, решаем, как добавить текущий текст:\n      // как продолжение текущего абзаца или начать новый.\n      // needsParagraphBreak сравнивает предыдущую добавленную в буфер строку (или ее конец)\n      // с текущей обрабатываемой строкой textToProcess.\n      // Важно: `previousLineTrimmed` здесь должна быть последней *эффективно добавленной* строкой.\n      if (needsParagraphBreak(previousLineTrimmed, textToProcess) && !isMarkerLine) {\n        // Если нужен разрыв абзаца И текущая строка не является началом нового элемента списка\n        // (чтобы не разрывать сразу после маркера, если он сам по себе не требует разрыва)\n        flush();\n        buf = textToProcess;\n      } else {\n        // Продолжаем текущий абзац/элемент списка, добавляя пробел\n        buf += ' ' + textToProcess;\n      }\n    }\n    previousLineTrimmed = textToProcess.split('\\n').pop()?.trim() || ''; // Обновляем previousLineTrimmed последней частью обработанного текста\n  }\n\n  flush(); // Сброс остатков из буфера после окончания цикла\n\n  return paras.join('\\n\\n'); // Соединяем все абзацы двойным переносом строки\n}\n\n// ── n8n mapping (ваша существующая логика маппинга) ───────────────────────────────────\nreturn items.map(({ json }) => {\n  const {\n    idx_in_batch,\n    type = 'web',\n    text = '',\n    url,\n    file_name,\n    title,\n    language = null,\n    retrieved_at = new Date().toISOString()\n  } = json;\n\n  const cleaned = cleanText(text); // Применяем обновленную функцию очистки\n\n  const out = {\n    type,\n    text: cleaned,\n    language,\n    retrieved_at,\n  };\n\n  // Сохраняем остальные поля, как в вашем оригинальном коде\n  if (idx_in_batch !== undefined) out.idx_in_batch = idx_in_batch;\n  if (type === 'file' && file_name) out.file_name = file_name;\n  if (type === 'web' && title) out.title = title;\n  if ((type === 'web' || type === 'video') && url) out.url = url;\n\n  return { json: out };\n});\n// --- КОНЕЦ КОДА ДЛЯ УЗЛА n8n Clean & Format ---\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4340,
+        -140
+      ],
+      "id": "d33fd7ce-0964-4a07-95f3-4430a7efe15e",
+      "name": "Clean & Format"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные из входа\nconst results = Array.isArray($json.results) ? $json.results[0] : $json.results;\n\n// Мета-данные из Clean & Format\nconst meta = $('Clean & Format').first().json;\n\nconst sourceType = meta.type || '';\nconst title = meta.title || '';\nconst url = meta.url || '';\nconst fileName = meta.file_name || '';\nconst language = meta.language || '';\nconst retrievedAt = meta.retrieved_at || new Date().toISOString();\n\n// Формируем объекты для отправки в БД\nconst items = (results.texts || []).map((text, i) => ({\n  type: sourceType,\n  language: language,\n  retrieved_at: retrievedAt,\n  paragraph_idx: i,\n  paragraph_text: text || '',\n  embedding: results.embeddings?.[i] || null,\n  title: title,\n  url: url,\n  file_name: fileName\n}));\n\nreturn { json: { items } };\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5340,
+        -180
+      ],
+      "id": "e3ab0a5a-e67d-4ca4-9b72-16634dbe2927",
+      "name": "Results"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/documents_paragraphs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.items }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5740,
+        -180
+      ],
+      "id": "3f27d20f-c61b-4058-bbcf-1907183c02b5",
+      "name": "PUSH TO DB",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### СБОР ИНФОРМАЦИИ И ОЖИДАНИЕ ВСЕХ ДОКУМЕНТОВ",
+        "height": 220,
+        "width": 540,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3720,
+        -200
+      ],
+      "id": "f44ae631-c193-4a3e-bb3f-741bfdc420e7",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json[\"message\"][\"chat\"][\"id\"]}}",
+        "text": "Режим работы:",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Чат",
+                    "additionalFields": {
+                      "callback_data": "chat"
+                    }
+                  },
+                  {
+                    "text": "База",
+                    "additionalFields": {
+                      "callback_data": "documents"
+                    }
+                  },
+                  {
+                    "text": "(Clean chat)",
+                    "additionalFields": {
+                      "callback_data": "clean_chat"
+                    }
+                  },
+                  {
+                    "text": "(Clean base)",
+                    "additionalFields": {
+                      "callback_data": "clean_base"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1060,
+        440
+      ],
+      "id": "fa4bb1b2-3ef1-4d44-b4ff-634cf47fccde",
+      "name": "Mode menu",
+      "webhookId": "43c4fc87-0514-4a10-9c99-7545a4fa0895",
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "468aee87-e709-4059-946c-1ae0f8ce972d",
+              "leftValue": "={{$json[\"callback_query\"]}}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        520
+      ],
+      "id": "33b7b193-fffd-45b5-872e-9d1bfd3b0826",
+      "name": "Button/Text?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Выберите режим работы:",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "Чат",
+                    "additionalFields": {
+                      "callback_data": "chat"
+                    }
+                  },
+                  {
+                    "text": "База",
+                    "additionalFields": {
+                      "callback_data": "documents"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1660,
+        440
+      ],
+      "id": "1405fcdb-d91a-4da3-a053-21f285229aac",
+      "name": "Mode menu1",
+      "webhookId": "43c4fc87-0514-4a10-9c99-7545a4fa0895",
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c0b93697-8388-4239-88c5-c116725df95e",
+              "leftValue": "={{ $json.current_mode }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1480,
+        460
+      ],
+      "id": "9c429c44-7c3d-4afa-b0bd-d7d9bf69600a",
+      "name": "Mode selected?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6acf73f7-2da5-404c-b810-3949ad71be6e",
+              "leftValue": "={{ $('Telegram Trigger').item.json.callback_query.data }}",
+              "rightValue": "chat",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1300,
+        840
+      ],
+      "id": "abe6ae2a-caef-459e-b5ea-d3dc81a44242",
+      "name": "Chat/Base?"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.message.chat.id }}",
+        "text": "=*Выбран режим \\\"Загрузка в базу\\\"\\:*  \n• Можно отправить веб\\-ссылку, видео или файл  \n• Всё будет автоматически добавлено в базу  \n  \n_Поддерживается_\\:  \n• Веб\\-ссылка — любая\\, содержащая текст\\. До 3 шт за раз\\.  \n• Видео — youtube\\.com и youtu\\.be\\. До 3шт за раз\\.  \n• Файлы — pdf \\/ docx \\/ txt\\, так же извлекается текст из изображений внутри файлов\\. 1шт за раз\\.",
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1560,
+        980
+      ],
+      "id": "7ec4c3f9-34b7-407b-9e8d-58eb76c13d27",
+      "name": "Mode Base",
+      "webhookId": "aa427c21-c0cb-4f4a-8ab4-302f50a8733d",
+      "executeOnce": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.message.chat.id }}",
+        "text": "=*Выбран режим \"Чат\":*  \n• Ограничение памяти — 30 сообщений   \n• Обращение к вашей _RAG_ базе — автоматизировано",
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1560,
+        720
+      ],
+      "id": "19c4ac86-35f9-42e7-995f-1f2a97d10475",
+      "name": "Mode Chat",
+      "webhookId": "aa427c21-c0cb-4f4a-8ab4-302f50a8733d",
+      "executeOnce": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/user_state",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "{\n  \"Prefer\": \"resolution=merge-duplicates\"\n}",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={\n  \"user_id\":      \"{{ $json.callback_query.from.id }}\",\n  \"current_mode\": \"{{ $json.callback_query.data }}\",\n  \"updated_at\":   \"{{ $now }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1080,
+        840
+      ],
+      "id": "091de72d-eb78-434f-ae32-7a7937128ba7",
+      "name": "Mode set",
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/user_state",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "user_id",
+              "value": "=eq.{{ $json.message.chat.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1300,
+        460
+      ],
+      "id": "97b106a4-6d59-43e2-b893-3df905139d9d",
+      "name": "Mode check",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0b27cf90-ac3f-483a-8d77-e0ee696e3d79",
+              "leftValue": "={{ $json.current_mode }}",
+              "rightValue": "documents",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1480,
+        220
+      ],
+      "id": "635009b8-654a-4243-b445-7102792ed7ab",
+      "name": "Mode type"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2f1934a9-9f8c-41c3-8bfd-4ebbd79d4404",
+              "leftValue": "={{ $json.callback_query.data }}",
+              "rightValue": "chat",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "b08f0226-e91e-42fc-a72c-3067c2c71ecf",
+              "leftValue": "={{ $json.callback_query.data }}",
+              "rightValue": "documents",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        820,
+        940
+      ],
+      "id": "55fb4bfc-3f14-4e63-939c-90ae2856ab03",
+      "name": "Mode/Clean"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "825e42b2-68f5-4f81-bd72-bad4c8f179cf",
+              "leftValue": "={{ $json.callback_query.data }}",
+              "rightValue": "clean_chat",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1020,
+        1120
+      ],
+      "id": "ca153211-4581-4d01-b3e7-7c894ff54a61",
+      "name": "Clean chat/base"
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/chat_messages?user_id=eq.{{ $('Telegram Trigger').item.json.callback_query.from.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1240,
+        1040
+      ],
+      "id": "e7e62e34-9ded-4341-9aa2-9db21fdd9509",
+      "name": "Clean Chat",
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/chat_messages?user_id=eq.{{ $json.message.from.id }}&order=created_at.asc&select=role,message\n\n\n",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2160,
+        1200
+      ],
+      "id": "1ac24f11-9977-4af7-b0c0-0731d16503f3",
+      "name": "Get history",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2700,
+        1200
+      ],
+      "id": "1fafb650-70a8-4344-9595-65c4c26e3614",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vR07vGCQuJSKdDpJ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.items[0].user_id }}",
+        "text": "={{ $json.items[1].message }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3420,
+        820
+      ],
+      "id": "1b8818e8-d506-45ee-8632-9c615c48a5de",
+      "name": "Telegram1",
+      "webhookId": "1e440c6e-aeae-44e9-b4d9-ad673b5a1a09",
+      "alwaysOutputData": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        2520,
+        1000
+      ],
+      "id": "8ceed9bd-ea44-46dc-a95b-98bbd60e9462",
+      "name": "Query+Context"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Run Once for All Items\nconst history = $input.all();      // без .reverse()\nlet context = '';\n\nif (history.length) {\n  context = history\n    .map(msg => {\n      const role = msg.json.role   || 'unknown';\n      const text = msg.json.message || '';\n      return `${role}: ${text}`;\n    })\n    .join('\\n');\n}\n\nreturn [{ json: { context } }];\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2360,
+        1200
+      ],
+      "id": "c510daae-4610-491f-b630-3c2f617f1af9",
+      "name": "Form history",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "jsCode": "const src      = $input.first().json;\n\nconst userId   = src?.message?.chat?.id ?? null;\nconst userText = src?.message?.text     ?? '';\nconst botText  = src.output             ?? '';\n\nconst now      = new Date();\n\nconst items = [\n  {\n    user_id:    userId,\n    message:    userText,\n    role:       'user',\n    created_at: now.toISOString(),\n  },\n  {\n    user_id:    userId,\n    message:    botText,\n    role:       'assistant',\n    created_at: new Date(now.getTime() + 1000).toISOString(),\n  },\n];\n\nreturn [{ json: { items } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3200,
+        900
+      ],
+      "id": "cf60b4f2-e6a1-4c1b-a5fb-b0fe48ae4ecf",
+      "name": "Result parser"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/rpc/insert_and_trim_pairs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ \n  JSON.stringify({\n    p_items: $json.items, \n    p_keep_pairs: 15\n  }) \n}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3420,
+        1000
+      ],
+      "id": "5191425d-24cb-4181-8cef-6fca8b6988e9",
+      "name": "Save history",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Chat history: \"{{ $json.context }}\"\nLast message (main): {{ $('Telegram Trigger').item.json.message.text }}\nUse rag-db-query tool for answer about cities.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are an AI assistant in a Telegram chat. Follow these strict constraints. \n\n⟫ Response Rules\n• Always reply in **Russian**, concisely and meaningfully.  \n• Use {{ $json.context }} only for dialogue continuity.  \n• Treat **Last message (main)** as the sole user query.  \n• If a question was answered earlier — point to the previous answer, do not repeat.  \n• Ask for clarification (in Russian) if the request is unclear.\n\n⟫ Tool: `rag-db-query`\nUse it to everytime retrieve factual data from the knowledge base. \n\n⟫ When to call\nCall **once** and **only if** the current Last message contains:  \n— \"n8n\"/\"н8н\" • or phrases \"поищи по базе\", \"проверь в базе\", \"source\", \"cite\" • or a URL/filename with “что в этом…” / “о чём это…”.\n\n⟫ Before calling\nRewrite the user message into a clear factual query (remove slang, typos, extra words).  \nExample:  \nUser » «а в н8н как сделать чтобы api не кидал 429?»  \nQuery » «как обрабатывать ошибку 429 в n8n при превышении лимита запросов»\n\n⟫ After the call (YOU MUST DO IT, NO OPTIONS)\n• If `results` empty → answer on your own based on your own knowledge and previous answers. \n• Otherwise:  \n  1. Begin the answer by paraphrasing `paragraph_text`.  \n  2. Optionally add brief clarifications.  \n  3. **Mandatory** grounding block (always print it!):\n\"Информация была взята из базы данных ({{ source_type }}, {{ source_identifier }})\"\n(user 'source_type' and 'source_identifier' from rag-db-query response)\n\n\n(omit empty parts, never mention the tool).\n\n⟫ Forbidden\n• Hallucinating data.  \n• Triggering the tool based on earlier messages.  \n• Omitting the grounding block when data was used.  \n• Repeating the same answer verbatim.\n\n⟫ Output\nPlain text only (no JSON) unless explicitly requested.\n\nIf there is no information in the database (unknown), do not write where the information was taken from."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        2740,
+        1000
+      ],
+      "id": "739236c9-99d8-4c74-91c3-61bd6879d3dd",
+      "name": "RAG CHATBOT"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dcf0db86-e5ee-467f-824f-56db0db51958",
+              "leftValue": "={{ ($json.message?.text?.match(/https?:\\/\\/[^\\s]+/) !== null) || $json.document }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1060,
+        680
+      ],
+      "id": "2d4596fa-bf1a-4d1e-b078-a519e587a7d1",
+      "name": "IF",
+      "notes": "IF text have url/file then check mode, if haven't - go to chat faster"
+    },
+    {
+      "parameters": {
+        "content": "# МОДУЛЬ ОБЩЕНИЯ С ЧАТОМ",
+        "height": 640,
+        "width": 1620,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1940,
+        780
+      ],
+      "id": "fdfe672a-5c1f-4cbd-b5ad-6e1dd6a1eb1e",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c609cbe5-6ce2-4504-9fb9-36ebe900b1ab",
+              "leftValue": "={{ $json.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        820,
+        500
+      ],
+      "id": "f381090d-230e-4aca-b1b7-4a13420cef32",
+      "name": "Start/Text?"
+    },
+    {
+      "parameters": {
+        "content": "### МОДУЛЬ ЗАНЕСЕНИЯ В БД\n",
+        "height": 220,
+        "width": 400,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        5600,
+        -240
+      ],
+      "id": "0639f85c-a4fa-4544-95dd-59cffdc88b8f",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const out = [];\n// Получаем JSON из Telegram триггера.\n// Убедитесь, что имя вашего триггера в n8n - 'Telegram Trigger'\nconst tgInput = $('Telegram Trigger').first();\n\n// Проверка, что tgInput и необходимые поля существуют, чтобы избежать ошибок\nif (!tgInput || !tgInput.json || !tgInput.json.message) {\n  // Если структура данных не та, которую мы ожидаем, возвращаем пустой массив items\n  // Это предотвратит ошибки в последующих узлах, если триггер сработает с неожиданными данными\n  return [{ json: { items: out } }];\n}\nconst tg = tgInput.json;\n\n// Текст сообщения или подпись к медиафайлу (для извлечения ссылок)\nconst text = tg.message.text || tg.message.caption || '';\n\n// --- Обработка ссылок ---\nif (text) { // Убедимся, что text определен\n  const urls = (text.match(/https?:\\/\\/[^\\s]+/g) || []);\n  for (const url of urls) {\n    const lower = url.toLowerCase();\n    // Ваша логика определения видео может быть сложнее,\n    // здесь упрощенная проверка на YouTube\n    if (lower.includes('youtube.com/') || lower.includes('youtu.be/')) {\n      out.push({ type: 'video', url: url });\n    } else {\n      out.push({ type: 'web', url: url });\n    }\n  }\n}\n\n// --- Обработка документов ---\n// Поле tg.message.document существует, если пользователь отправил файл как документ\nif (tg.message.document && tg.message.document.file_id) {\n  const doc = tg.message.document;\n  out.push({\n    type: 'file',\n    file_id: doc.file_id,\n    file_name: doc.file_name || null, // Имя файла из Telegram или null, если его нет\n    // mime_type можно добавить здесь, если он известен и нужен сразу:\n    // mime_type: doc.mime_type || null\n  });\n}\n\n// --- Обработка фотографий (добавлено) ---\n// Поле tg.message.photo существует, если пользователь отправил фотографию.\n// Это массив объектов, описывающих разные размеры одного фото.\nif (tg.message.photo && Array.isArray(tg.message.photo) && tg.message.photo.length > 0) {\n  // Обычно последний элемент массива - это фото самого большого доступного размера\n  const largestPhoto = tg.message.photo[tg.message.photo.length - 1];\n\n  if (largestPhoto && largestPhoto.file_id) {\n    out.push({\n      type: 'file', // Классифицируем как 'file', согласно вашему запросу\n      file_id: largestPhoto.file_id,\n      // Фотографии в Telegram не имеют \"имени файла\" в том же смысле, что и документы.\n      // Генерируем имя, используя file_unique_id для уникальности.\n      // Расширение \".jpg\" является предположением; реальный тип файла\n      // будет определен позже, при его скачивании и обработке.\n      file_name: `photo_${largestPhoto.file_unique_id || largestPhoto.file_id}.jpg`,\n      // mime_type для фото на этом этапе не известен.\n      // Он станет известен после вызова getFile и скачивания.\n    });\n  }\n}\n\nreturn [{ json: { items: out } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        -60
+      ],
+      "id": "55718590-4f4d-4ec2-82fb-1c7a5b814d49",
+      "name": "Classificator"
+    },
+    {
+      "parameters": {
+        "content": "# ПОДГОТОВКА ИНФОРМАЦИИ ДЛЯ РАСПРЕДЕЛЕНИЯ",
+        "height": 540,
+        "width": 1040,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        640,
+        -360
+      ],
+      "id": "b3429214-5b0c-4cb5-a132-0ac4a7b4def9",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1980,
+        980
+      ],
+      "id": "99385a09-7c15-4288-90e7-8380158bf750",
+      "name": "Bridge 1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.from.id }}",
+        "text": "=Внесено.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        6960,
+        -440
+      ],
+      "id": "122a33d3-8368-4b2b-8428-0c931f52038b",
+      "name": "Telegram2",
+      "webhookId": "1e440c6e-aeae-44e9-b4d9-ad673b5a1a09",
+      "alwaysOutputData": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        3000,
+        -1420
+      ],
+      "id": "16c5d720-be22-475b-b018-d0c52e9a7cf0",
+      "name": "No Operation, do nothing"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        6800,
+        -440
+      ],
+      "id": "f1f304ff-0bd5-4cf8-94bf-c263ee7a03f2",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/documents_paragraphs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1220,
+        1240
+      ],
+      "id": "fc9e4273-08f5-4290-94d8-e6430c33456a",
+      "name": "Clean Base",
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.callback_query.message.chat.id }}",
+        "text": "=Чат очищен\\!",
+        "additionalFields": {
+          "parse_mode": "MarkdownV2"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1520,
+        1220
+      ],
+      "id": "55dc6507-d76d-4e7b-80a5-e57440130836",
+      "name": "Clean msg",
+      "webhookId": "aa427c21-c0cb-4f4a-8ab4-302f50a8733d",
+      "executeOnce": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "TG5BEC4pn60ZiGae",
+          "name": "delamane"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "description": "Use for RAG base search. in query write only text.\nUse sources for \"Grounding block\"",
+        "workflowId": {
+          "__rl": true,
+          "value": "NdE0ltECP1WASBdg",
+          "mode": "list",
+          "cachedResultName": "RAG CHATBOT Vector search workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "query": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('query', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "query"
+          ],
+          "schema": [
+            {
+              "id": "query",
+              "displayName": "query",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        2940,
+        1220
+      ],
+      "id": "bbc432c1-3d7a-4ff8-8b35-72d2505394a7",
+      "name": "rag-db-query"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Extract and parse content from any web page",
+        "operation": "executeTool",
+        "toolName": "scrape",
+        "toolParameters": "={\n  \"url\": \"{{ $fromAI('url', 'URL of the page to scrape') }}\",\n  \"format\": \"markdown\",\n  \"cleaned\": true,\n  \"renderJs\": true\n}\n"
+      },
+      "type": "n8n-nodes-mcp.mcpClientTool",
+      "typeVersion": 1,
+      "position": [
+        2520,
+        20
+      ],
+      "id": "64df211f-6acf-40de-9cda-9c94214e89fd",
+      "name": "scrape tool",
+      "credentials": {
+        "mcpClientApi": {
+          "id": "7Tt4H3YWRkTi8Ff8",
+          "name": "Dumpling ai"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        3060,
+        900
+      ],
+      "id": "f40054fc-ea1e-4a57-8f4d-2fa65bff7f68",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://jina-embed-gpu:8008/embed_late_chunk",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "texts",
+              "value": "={{ $json.texts }}"
+            },
+            {
+              "name": "strategy",
+              "value": "={{$json.source_type === 'video' ? 'sentence' : 'paragraph'}}"
+            },
+            {
+              "name": "task",
+              "value": "retrieval.passage"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        5200,
+        -180
+      ],
+      "id": "ed8d9d27-7973-4dd4-93e1-13c2b91412f4",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Content Type: `{{$json.type}}`\nInput Text: `{{$json.text}}`",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a text processing expert. Your task is to prepare input text for a Retrieval Augmented Generation (RAG) system by splitting it into suitable chunks for embedding.\n\nOverall Instructions:\n1.  You will receive `Input Text` and its `Content Type`.\n2.  Clean the `Input Text`: Remove any irrelevant elements like HTML tags, boilerplate (headers, footers, ads), navigation links, or other non-content artifacts. Focus on extracting the core textual content.\n3.  Condense if too long: If the cleaned text significantly exceeds a reasonable limit for processing (e.g., ~8000 tokens), summarize it to fit, ensuring all key information and meaning are preserved.\n4.  Chunk the processed text based on the `Content Type` using the specific rules below.\n5.  Output Format: Respond in format: `\"texts\": \"text paragraphs\", \"chunking_strategy\": \"strategy_used\"`. Each paragraph must be separated from the other by symbols \"\\n\\n\".\n\nChunking Rules by Content Type:\n\nIf `Content Type` is \"video\":\n    Split the processed text into sentences.\n    Aim for semantically complete statements. Merge very short, consecutive sentences if they logically form a single, more complete thought. Remove all \\n\\n.\n    The `chunking_strategy` in the output must be \"sentence\".\n\nIf `Content Type` is \"web\" or \"file\":\n    Your PRIMARY GOAL is to create text paragraphs where each paragraph contains approximately 250-350 words. This word count is the most important rule for chunking.\n    Process the cleaned text to achieve this word count per chunk:\n        Start forming a chunk by accumulating words.\n        When the current chunk approaches the 250-350 word target, find the nearest sensible semantic boundary (like the end of a sentence or a natural break in topic) to finalize that chunk.\n        Do NOT create chunks that are very short (e.g., under 200 words) UNLESS the entire remaining text is less than 200 words.\n        If you encounter text segments from the input that appear as very short paragraphs (e.g., separated by many newlines in the source, or single sentences), these should be combined with subsequent text to build chunks that meet the target word count. Do not treat every original line break or short sentence as a reason to start a new chunk if it results in a chunk far below the target word count.\n        All final chunks must be semantically coherent.\n    Each resulting chunk (paragraph) that meets these criteria should be a separate string in the \"texts\" array.\n    The `chunking_strategy` in the output must be \"paragraph\".\n\n*DO IT NORMALLY, DO NOT CUT HALF TEXT OR SOMETHING OTHER SHIT, USE PROMPT, USE ALL TEXT!!!!!!!*"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        4580,
+        -140
+      ],
+      "id": "77e0433b-c92e-4562-86d0-25858285a15c",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        4480,
+        20
+      ],
+      "id": "4915c114-f43f-4d39-8734-733e4f5bb4cb",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "vR07vGCQuJSKdDpJ",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        4920,
+        -180
+      ],
+      "id": "3b41523c-3905-4021-800e-e620dc94a7af",
+      "name": "Merge"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        -1420
+      ],
+      "id": "3d552cd2-8934-43ed-863b-cd4912e91242",
+      "name": "No Operation, do nothing1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const firstItem = items[0].json;\nconst secondItem = items[1].json;\n\n// Проверки на наличие данных (чтобы не крашнулось, если items меньше 2)\nif (!firstItem || !secondItem) {\n  throw new Error('Недостаточно данных в items от Merge');\n}\n\n// Берём texts: сначала с верхнего уровня, затем fallback в output\nlet textsValue = secondItem.texts ?? secondItem.output?.texts;\nif (textsValue == null) {\n  throw new Error('Во втором элементе отсутствует поле texts');\n}\n\n// Оборачиваем texts в массив, если это не массив\nif (!Array.isArray(textsValue)) {\n  textsValue = [textsValue];\n}\n\n// Берём стратегию чанкинга с учётом возможного расположения\nconst chunkingStrategy =\n  secondItem.chunking_strategy ?? secondItem.output?.chunking_strategy ?? null;\n\nreturn [{\n  json: {\n    language: firstItem.language,\n    retrieved_at: firstItem.retrieved_at,\n    idx_in_batch: firstItem.idx_in_batch,\n    file_name: firstItem.file_name,\n    texts: textsValue,\n    chunking_strategy: chunkingStrategy,\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5060,
+        -180
+      ],
+      "id": "77a54843-962a-4c0b-8276-3b3f8af22372",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"texts\": \"text paragraphs\",\n\t\"chunking_strategy\": \"strategy_used\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        4780,
+        20
+      ],
+      "id": "42c657c2-9c58-48e5-bfd3-307fb4940eb4",
+      "name": "Structured Output Parser"
+    }
+  ],
+  "pinData": {
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 625905678,
+          "message": {
+            "message_id": 1360,
+            "from": {
+              "id": 6059802974,
+              "is_bot": false,
+              "first_name": "PX",
+              "username": "ivr_xx",
+              "language_code": "ru",
+              "is_premium": true
+            },
+            "chat": {
+              "id": 6059802974,
+              "first_name": "PX",
+              "username": "ivr_xx",
+              "type": "private"
+            },
+            "date": 1754208531,
+            "text": "Расскажи подробнее про Берлин"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Set Names",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Keep meta transcript",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Keep meta scraping",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ai Scraping",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Keep meta file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "file?": {
+      "main": [
+        [
+          {
+            "node": "Format ok?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classificator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format ok?": {
+      "main": [
+        [
+          {
+            "node": "Format Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Classificator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Button/Text?",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "No Operation, do nothing1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paid transcription",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe": {
+      "ai_tool": [
+        [
+          {
+            "node": "Paid transcription",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio extract": {
+      "main": [
+        [
+          {
+            "node": "Upload binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Names": {
+      "main": [
+        [
+          {
+            "node": "Audio extract",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload binary": {
+      "main": [
+        [
+          {
+            "node": "Whisper Transcribe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whisper Transcribe": {
+      "main": [
+        [
+          {
+            "node": "Temp delete",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge transcribe",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ai Scraping",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Firecrawl scrape": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ai Scraping",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Parser": {
+      "main": [
+        [
+          {
+            "node": "Error check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error check": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Merge all",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ai Scraping": {
+      "main": [
+        [
+          {
+            "node": "Merge scraping",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "File": {
+      "main": [
+        [
+          {
+            "node": "Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split & Tag": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Gatekeeper",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep meta scraping": {
+      "main": [
+        [
+          {
+            "node": "Merge scraping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge scraping": {
+      "main": [
+        [
+          {
+            "node": "Scrape Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep meta file": {
+      "main": [
+        [
+          {
+            "node": "Merge file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge file": {
+      "main": [
+        [
+          {
+            "node": "File Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Structured": {
+      "main": [
+        [
+          {
+            "node": "Merge file",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge transcribe": {
+      "main": [
+        [
+          {
+            "node": "Video parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep meta transcript": {
+      "main": [
+        [
+          {
+            "node": "Merge transcribe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Video parser": {
+      "main": [
+        [
+          {
+            "node": "Merge all",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extractor": {
+      "main": [
+        [
+          {
+            "node": "Text Structured",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "File Parser": {
+      "main": [
+        [
+          {
+            "node": "Merge all",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Gatekeeper": {
+      "main": [
+        [
+          {
+            "node": "Clean & Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge all": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean & Format": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Results": {
+      "main": [
+        [
+          {
+            "node": "PUSH TO DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Button/Text?": {
+      "main": [
+        [
+          {
+            "node": "Start/Text?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mode/Clean",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode selected?": {
+      "main": [
+        [
+          {
+            "node": "Mode menu1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mode type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode menu": {
+      "main": [
+        []
+      ]
+    },
+    "Chat/Base?": {
+      "main": [
+        [
+          {
+            "node": "Mode Chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mode Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode set": {
+      "main": [
+        [
+          {
+            "node": "Chat/Base?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode check": {
+      "main": [
+        [
+          {
+            "node": "Mode selected?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode type": {
+      "main": [
+        [
+          {
+            "node": "file?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bridge 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mode/Clean": {
+      "main": [
+        [
+          {
+            "node": "Mode set",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clean chat/base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean chat/base": {
+      "main": [
+        [
+          {
+            "node": "Clean Chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clean Base",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get history": {
+      "main": [
+        [
+          {
+            "node": "Form history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "RAG CHATBOT",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query+Context": {
+      "main": [
+        [
+          {
+            "node": "RAG CHATBOT",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram1": {
+      "main": [
+        []
+      ]
+    },
+    "Form history": {
+      "main": [
+        [
+          {
+            "node": "Query+Context",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Result parser": {
+      "main": [
+        [
+          {
+            "node": "Save history",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RAG CHATBOT": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "IF": {
+      "main": [
+        [
+          {
+            "node": "Mode check",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bridge 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start/Text?": {
+      "main": [
+        [
+          {
+            "node": "Mode menu",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classificator": {
+      "main": [
+        [
+          {
+            "node": "Split & Tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bridge 1": {
+      "main": [
+        [
+          {
+            "node": "Get history",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Query+Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PUSH TO DB": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Telegram2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Chat": {
+      "main": [
+        [
+          {
+            "node": "Clean msg",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "rag-db-query": {
+      "ai_tool": [
+        [
+          {
+            "node": "RAG CHATBOT",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scrape tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "Ai Scraping",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Result parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No Operation, do nothing1": {
+      "main": [
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Novosibirsk",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "d1cdb770-f912-4b9d-ae8a-2cf2550fd056",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3faa556e3b62b23c2449d3e37f4d2291c2d650b95607c64d9b0835a6cef70513"
+  },
+  "id": "cb8CPKtHgjtlp9rM",
+  "tags": []
+}

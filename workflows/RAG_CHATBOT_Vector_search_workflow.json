@@ -1,0 +1,363 @@
+{
+  "name": "RAG CHATBOT Vector search workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "jsonExample",
+        "jsonExample": "{\n\"query\": \n\"произвольный текст\"\n}"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -60,
+        0
+      ],
+      "id": "b687e57d-f6fe-4832-91f0-ca83096a6e80",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://jina-embed-gpu:8008/embed_late_chunk",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"texts\": [\"{{$json.query}}\"],\n  \"task\": \"retrieval.query\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        380,
+        0
+      ],
+      "id": "d140b66c-60f2-44c2-8c9a-9e4620988b21",
+      "name": "Query Embedding"
+    },
+    {
+      "parameters": {
+        "jsCode": "// из узла \"Edit Fields\"\nconst query = $('When Executed by Another Workflow').first().json.query;\n\n// из текущего HTTP-узла (embed → embeddings[0])\nconst vector = $input.first().json.results[0].embeddings;\n\n// строка-литерал для pgvector\nconst vecStr = '[' + vector.join(',') + ']';\n\n// сколько кандидатов отдать ANN\nconst topK = 30;   // поменяйте при необходимости\n\nreturn [{\n  json: {\n    query,\n    vecStr,\n    top_k: topK\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        580,
+        0
+      ],
+      "id": "3acfdc95-52e3-4d37-9462-3c902ba65d33",
+      "name": "Forming",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://uhfliwtnkedtzbepfshw.supabase.co/rest/v1/rpc/search_documents",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query_vector\": \"{{ $json.vecStr }}\",\n  \"top_k\": {{ $json.top_k }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        780,
+        0
+      ],
+      "id": "f5ab7679-1dd7-429c-82e6-99f167f82625",
+      "name": "TOP-K",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "lqcHSIJU8Md8IM6V",
+          "name": "Supabase account RAG CHATBOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 2,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1240,
+        0
+      ],
+      "id": "ae7c136f-5934-4800-baa2-7ec7ecd6af9a",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Code2  — Run Once for All Items\n\n// общие данные из Code1\nconst { query, metas = [] } = $('Code1').first().json ;\n\n// массив [{ document, score }, …] — ответ /rerank\nconst results = $json.results ?? [];\n\n// «склеиваем» результаты с соответствующим meta-объектом\nreturn results.map((r, idx) => ({\n  json: {\n    ...metas[idx],          // id, url, file_name, type, paragraph_idx, ann_score\n    query,                  // уберите, если не нужен\n    paragraph_text: r.document,\n    rerank_score  : r.score\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        100
+      ],
+      "id": "874fad02-378e-40c5-ac1e-c9e9e3f925a9",
+      "name": "Code2",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://jina-reranker-gpu:8010/rerank",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  query: $json.query,\n  documents: $json.documents\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        100
+      ],
+      "id": "7f13f714-253f-42f6-a9ca-32fb5ff926b3",
+      "name": "TOP-N",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const THRESHOLD = 0.35;   // минимальный балл от Jina-reranker\nconst TOP_N     = 10;     // сколько лучших вернуть\n\n// 0. убираем пустышки\nconst valid = items.filter(it => Object.keys(it.json).length);\n\n// 1. оставляем только те, у кого rerank_score ≥ 0.35\nconst passed = valid.filter(it =>\n  (it.json.rerank_score ?? 0) >= THRESHOLD\n);\n\n// 2. сортируем по убыванию rerank_score\npassed.sort((a, b) =>\n  (b.json.rerank_score ?? 0) - (a.json.rerank_score ?? 0)\n);\n\n// 3. берём первые N\nreturn passed.slice(0, TOP_N);\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        -280
+      ],
+      "id": "2b4e8ff9-b815-4c2e-8fe7-000fe21490f6",
+      "name": "Filter <5",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const query     = $items()[0].json.query;\nconst metas     = $items().map(e => e.json.meta);   // 2 meta-словаря\nconst documents = $items().map(e => e.json.doc);    // 2 строки-абзацы\n\nreturn [{\n  json: {\n    query,\n    metas,        // ← сохраняем, пригодится позже\n    documents     // ← массив, уйдёт в /rerank\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        100
+      ],
+      "id": "9e23ad13-3a6a-41c7-9dd5-1766c94428d6",
+      "name": "Code1",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.query;\nreturn [{ json: { query: typeof raw === 'string' ? raw : raw?.query } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "3d472c25-4282-44a7-9370-db714d0ca86e",
+      "name": "Code3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const transformedItems = [];\n\nfor (const item of items) {\n  const inputData = item.json;\n\n  let determined_source_type = 'unknown';\n  let determined_source_identifier = null;\n\n  const inputType = inputData.type ? String(inputData.type).toLowerCase() : '';\n  const inputUrl = inputData.url;\n  const inputFile = inputData.file_name;\n\n  if (inputType.includes('url') || inputType.includes('web')) {\n    determined_source_type = 'webpage';\n    determined_source_identifier = inputUrl;\n  } else if (inputType.includes('file')) {\n    determined_source_type = 'file';\n    determined_source_identifier = inputFile;\n  } else {\n    // Fallback\n    if (inputUrl && !inputFile) {\n      determined_source_type = 'webpage';\n      determined_source_identifier = inputUrl;\n    } else if (inputFile) {\n      determined_source_type = 'file';\n      determined_source_identifier = inputFile;\n    }\n  }\n  \n  // Ensure identifier is not undefined\n  if (typeof determined_source_identifier === 'undefined') {\n    determined_source_identifier = null;\n  }\n\n  // ann_score: привести к числу, если это строка; иначе null, если пусто\n  let annScore = inputData.ann_score;\n  if (typeof annScore === 'string' && annScore.trim() !== '' && !isNaN(annScore)) {\n    annScore = Number(annScore);\n  } else if (typeof annScore === 'undefined') {\n    annScore = null;\n  }\n\n  const outputItem = {\n    json: {\n      paragraph_text: inputData.paragraph_text,\n      source_type: determined_source_type,\n      source_identifier: determined_source_identifier,\n      retrieval_score: inputData.rerank_score,\n      ann_score: annScore,\n      document_id: inputData.id\n    }\n  };\n  transformedItems.push(outputItem);\n}\n\nreturn transformedItems;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1660,
+        -80
+      ],
+      "id": "08856139-58b0-42eb-83e8-566f481ffd8a",
+      "name": "Parser",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const query = $node[\"Forming\"].json.query;\n\nreturn items.map(item => {\n  const j = item.json;\n  return {\n    json: {\n      query,\n      doc: j.paragraph_text,\n      meta: {\n        id: j.id,\n        url: j.url,\n        file_name: j.file_name,\n        type: j.type,\n        paragraph_idx: j.paragraph_idx,\n        ann_score: j.score\n      }\n    }\n  };\n});\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        980,
+        0
+      ],
+      "id": "eb2c2db9-d735-416e-9045-98f29b520938",
+      "name": "Query+Doc",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const RERANK_THR   = 0.35;   // минимальный скор cross-encoder\nconst TOP_N        = 10;     // сколько отдаём в LLM\nconst EXTRA_BY_ANN = 3;      // «условных» с высоким ann\nconst SAFE_ANN_THR = 0.55;   // «более-менее» близкий вектор\n\nconst all = items.filter(it => Object.keys(it.json).length);\n\n// ——— 1. раздвигаем на passed / failed\nconst passed = [], failed = [];\nfor (const it of all) {\n  ((it.json.rerank_score ?? 0) >= RERANK_THR ? passed : failed).push(it);\n}\n\n// ——— 2. fallback, если passed пуст\nif (!passed.length && failed.length) {\n  // берём самый высокий rerank\n  failed.sort((a,b)=> (b.json.rerank_score??0)-(a.json.rerank_score??0));\n  const best = failed.shift();\n  // фильтруем откровенный шум по ann\n  if ((best.json.ann_score ?? 0) >= SAFE_ANN_THR) {\n    best.json.fallback_ann_only = true;\n    passed.push(best);\n  }\n}\n\n// ——— 3. условные кандидаты (ann)\nfailed.sort((a,b)=> (b.json.ann_score??0)-(a.json.ann_score??0));\nconst conditional = failed.slice(0, EXTRA_BY_ANN)\n  .map(it => { it.json.conditionally_relevant = true; return it; });\n\n// + соседние абзацы из того же документа\nfor (const p of passed) {\n  const did = p.json.id;\n  const neighbour = failed.find(f => f.json.id === did);\n  if (neighbour && !neighbour.json.conditionally_relevant) {\n    neighbour.json.conditionally_relevant = true;\n    conditional.push(neighbour);\n  }\n}\n\n// ——— 4. объединяем, сортируем, обрезаем\nconst final = passed.concat(conditional)\n  .sort((a,b)=>{\n    const sa = 0.2*(a.json.ann_score??0) + 0.8*(a.json.rerank_score??0);\n    const sb = 0.2*(b.json.ann_score??0) + 0.8*(b.json.rerank_score??0);\n    return sb - sa;\n  })\n  .slice(0, TOP_N);\n\nreturn final;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1460,
+        -80
+      ],
+      "id": "4acf3a9f-133c-483d-b4fb-092f7d94b871",
+      "name": "Filter",
+      "alwaysOutputData": true
+    }
+  ],
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "query": "информация о городе Берлин"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Query Embedding": {
+      "main": [
+        [
+          {
+            "node": "Forming",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forming": {
+      "main": [
+        [
+          {
+            "node": "TOP-K",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOP-K": {
+      "main": [
+        [
+          {
+            "node": "Query+Doc",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TOP-N": {
+      "main": [
+        [
+          {
+            "node": "Code2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "TOP-N",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code3": {
+      "main": [
+        [
+          {
+            "node": "Query Embedding",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter <5": {
+      "main": [
+        []
+      ]
+    },
+    "Query+Doc": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "36800b30-f2d2-4c4e-8f8c-04d7ac917d70",
+  "meta": {
+    "instanceId": "3faa556e3b62b23c2449d3e37f4d2291c2d650b95607c64d9b0835a6cef70513"
+  },
+  "id": "NdE0ltECP1WASBdg",
+  "tags": []
+}

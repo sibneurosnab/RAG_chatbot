@@ -1,0 +1,148 @@
+services:
+  # ────────────── n8n ──────────────
+  n8n:
+    build:
+      context: .
+      dockerfile: Dockerfile.n8n
+    container_name: n8n
+    restart: unless-stopped
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      - WEBHOOK_TUNNEL_URL=${WEBHOOK_TUNNEL_URL}
+      - N8N_COMMUNITY_PACKAGES_ALLOW_TOOL_USAGE=true
+      - N8N_AI_FEATURES_ENABLED=true
+      - GENERIC_TIMEZONE=Asia/Novosibirsk
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_LOG_LEVEL=debug
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+      - 1.0.0.1
+      - 8.8.4.4
+    volumes:
+      - ./n8n-data:/home/node/.n8n
+      - ./n8n-data/cookies.txt:/home/node/cookies.txt
+      - ./scripts:/home/node/scripts
+
+
+    #Для развертывания в локальной сети без NGINX
+    #ports:
+     # - "5678:5678"
+
+    networks:
+      - proxy-network
+
+  # ────────────── Flask (PDF-OCR) ──────────────
+  flask-app:
+    build:
+      context: ./flask_service
+      dockerfile: Dockerfile.flask
+    container_name: flask-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./scripts:/home/node/scripts
+    networks:
+      - proxy-network
+
+  # ──────────────── Embedding ─────────────────
+  jina-embed-gpu:
+    build:
+      context: ./jina_service
+      dockerfile: Dockerfile.embed
+    image: jina-embed-gpu:latest
+    container_name: jina-embed-gpu
+    restart: unless-stopped
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./model_cache:/app/.cache
+    environment:
+      MODEL_NAME: jinaai/jina-embeddings-v3
+      MODEL_REV: main
+      TRANSFORMERS_CACHE: /app/.cache
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+      CUBLAS_WORKSPACE_CONFIG: ":4096:8"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    networks:
+      - proxy-network
+
+  # ──────────────── Reranker ─────────────────
+  jina-reranker-gpu:
+    build:
+      context: ./reranker_service
+      dockerfile: Dockerfile.reranker
+    container_name: jina-reranker-gpu
+    image: jina-reranker-gpu:latest
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+    volumes:
+      - ./model_cache:/app/.cache
+    environment:
+      TRANSFORMERS_CACHE: /app/.cache
+      HF_HUB_DISABLE_TELEMETRY: "1"
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - proxy-network
+
+  # ────────────── Nginx Proxy Manager ──────────────
+  npm:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: npm
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+      - '81:81'
+    volumes:
+      - ./proxy-data/data:/data
+      - ./proxy-data/letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy-network
+
+  # ────────────── Whisper (GPU) ──────────────
+  whisper-asr:
+    image: onerahmet/openai-whisper-asr-webservice:latest-gpu
+    container_name: whisper-asr
+    restart: unless-stopped
+    environment:
+      - ASR_MODEL=medium
+      - ASR_MODEL_OPTIONS={"device":"cuda","compute_type":"float16"}
+      - NVIDIA_VISIBLE_DEVICES=all
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    networks:
+      - proxy-network
+
+networks:
+  proxy-network:
+    driver: bridge

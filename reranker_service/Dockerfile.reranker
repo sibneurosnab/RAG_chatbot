@@ -1,0 +1,23 @@
+FROM nvidia/cuda:12.6.1-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt /app/requirements.txt
+RUN pip3 install -r /app/requirements.txt
+
+ENV PIP_NO_BUILD_ISOLATION=1
+RUN pip install --no-cache-dir packaging==23.2 \
+ && pip install --no-cache-dir flash-attn==2.7.4.post1
+
+COPY server.py /app/server.py
+COPY startup.sh /app/startup.sh
+
+EXPOSE 8010
+CMD ["bash", "/app/startup.sh"]

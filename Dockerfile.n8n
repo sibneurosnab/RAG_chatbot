@@ -1,0 +1,54 @@
+# Dockerfile: n8n с yt-dlp, ffmpeg, tesseract и pymupdf
+# Этот Dockerfile настраивает контейнер для n8n с необходимыми зависимостями:
+# yt-dlp — для скачивания видео/аудио,
+# ffmpeg — для обработки медиафайлов,
+# tesseract — для OCR обработки изображений,
+# pymupdf — для работы с PDF.
+
+# 1. Используем базовый образ n8n
+# Здесь используется официальное изображение n8n версии 1.90.0
+FROM docker.n8n.io/n8nio/n8n:1.97.0
+
+# 2. Переключаемся на root для установки системных пакетов
+USER root
+
+# 3. Установка системных зависимостей
+# С помощью команды apk добавляем необходимые системные пакеты:
+# yt-dlp - для скачивания видео и аудио.
+# ffmpeg - для обработки видео и аудио файлов.
+# python3 - необходим для работы с Python.
+# py3-pip - менеджер пакетов для установки Python-библиотек.
+# tesseract-ocr - основной пакет для OCR.
+# tesseract-ocr-data-eng - данные для работы с английским языком в Tesseract.
+# tesseract-ocr-data-rus - данные для работы с русским языком в Tesseract.
+RUN apk update && \
+    apk add --no-cache \
+        yt-dlp \
+        ffmpeg \
+        python3 \
+        py3-pip \
+        tesseract-ocr \
+        tesseract-ocr-data-eng \
+        tesseract-ocr-data-rus \
+        bash \
+        build-base \
+        curl \
+    && rm -rf /var/cache/apk/*         # Очистка кэша после установки
+
+# 4. Создаем папку для временных файлов
+# Папка /home/node/temp_audio будет использоваться для хранения временных аудиофайлов.
+# Назначаем необходимые права доступа для пользователя node.
+RUN mkdir -p /home/node/temp_audio && chown node:node /home/node/temp_audio
+
+# 5. Переключаемся на пользователя node для установки Python-библиотек
+USER node
+
+# 6. Установка Python-библиотек через pip
+# Устанавливаем два необходимых пакета: pytesseract и PyMuPDF
+# pytesseract — это обертка для Tesseract, которая позволяет работать с OCR.
+# PyMuPDF — библиотека для работы с PDF документами.
+RUN pip3 install --no-cache-dir --user --break-system-packages pytesseract==0.3.10 PyMuPDF==1.25.5
+
+# 7. Добавляем пользовательскую директорию bin в PATH
+# Чтобы Python-пакеты, установленные для пользователя, могли быть доступны в системе.
+ENV PATH="/home/node/.local/bin:${PATH}"
